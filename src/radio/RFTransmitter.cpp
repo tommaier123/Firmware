@@ -35,21 +35,19 @@ struct RFTransmitter::Command {
 
 RFTransmitter::RFTransmitter(gpio_num_t gpioPin)
   : m_txPin(gpioPin)
-  , m_rmtHandle(nullptr)
   , m_queueHandle(nullptr)
   , m_taskHandle(nullptr)
 {
   OS_LOGD(TAG, "[pin-%hhi] Creating RFTransmitter", m_txPin);
 
-  m_rmtHandle = rmtInit(static_cast<int>(m_txPin), RMT_TX_MODE, RMT_MEM_64);
-  if (m_rmtHandle == nullptr) {
+  // Initialize RMT with frequency derived from tick rate (1000ns tick = 1MHz)
+  if (!rmtInit(static_cast<int>(m_txPin), RMT_TX_MODE, RMT_MEM_NUM_BLOCKS_1, static_cast<uint32_t>(1000000000.0f / kTickrateNs))) {
     OS_LOGE(TAG, "[pin-%hhi] Failed to create rmt object", m_txPin);
     destroy();
     return;
   }
 
-  float realTick = rmtSetTick(m_rmtHandle, kTickrateNs);
-  OS_LOGD(TAG, "[pin-%hhi] real tick set to: %fns", m_txPin, realTick);
+  OS_LOGD(TAG, "[pin-%hhi] RMT initialized", m_txPin);
 
   m_queueHandle = xQueueCreate(kQueueSize, sizeof(Command));
   if (m_queueHandle == nullptr) {
@@ -141,9 +139,9 @@ void RFTransmitter::destroy()
     vQueueDelete(m_queueHandle);
     m_queueHandle = nullptr;
   }
-  if (m_rmtHandle != nullptr) {
-    rmtDeinit(m_rmtHandle);
-    m_rmtHandle = nullptr;
+  if (m_txPin != GPIO_NUM_NC) {
+    rmtDeinit(m_txPin);
+    m_txPin = GPIO_NUM_NC;
   }
 }
 
@@ -172,7 +170,7 @@ static bool modifySequence(std::vector<Rmt::Sequence>& sequences, ShockerModelTy
   return false;
 }
 
-static void writeSequences(rmt_obj_t* rmt_handle, std::vector<Rmt::Sequence>& sequences)
+static void writeSequences(gpio_num_t txPin, std::vector<Rmt::Sequence>& sequences)
 {
   // Send queued commands
   for (auto seq = sequences.begin(); seq != sequences.end();) {
@@ -180,7 +178,7 @@ static void writeSequences(rmt_obj_t* rmt_handle, std::vector<Rmt::Sequence>& se
 
     if (timeToLive > 0) {
       // Send the command
-      rmtWriteBlocking(rmt_handle, seq->payload(), seq->size());
+      rmtWrite(txPin, seq->payload(), seq->size(), RMT_WAIT_FOR_EVER);
     } else {
       // Remove command if it has sent out its termination sequence for long enough
       if (timeToLive + kTerminatorDurationMs <= 0) {
@@ -189,7 +187,7 @@ static void writeSequences(rmt_obj_t* rmt_handle, std::vector<Rmt::Sequence>& se
       }
 
       // Send the termination sequence to stop the shocker
-      rmtWriteBlocking(rmt_handle, seq->terminator(), seq->size());
+      rmtWrite(txPin, seq->terminator(), seq->size(), RMT_WAIT_FOR_EVER);
     }
 
     // Move to the next command
@@ -239,6 +237,6 @@ void RFTransmitter::TransmitTask()
       }
     }
 
-    writeSequences(m_rmtHandle, sequences);
+    writeSequences(m_txPin, sequences);
   }
 }

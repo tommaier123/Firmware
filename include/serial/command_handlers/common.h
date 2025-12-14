@@ -5,6 +5,7 @@
 #include "Logging.h"
 
 #include <Arduino.h>
+#include "util/ArduinoCompat.h"
 
 #define SERPR_SYS(format, ...)      ::Serial.printf("$SYS$|" format "\r\n", ##__VA_ARGS__)
 #define SERPR_RESPONSE(format, ...) SERPR_SYS("Response|" format, ##__VA_ARGS__)

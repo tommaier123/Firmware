@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "util/ArduinoCompat.h"
 
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>

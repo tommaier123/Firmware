@@ -1,5 +1,7 @@
 #pragma once
 
+#include "util/ArduinoCompat.h"
+
 #include <string_view>
 #include <vector>
 

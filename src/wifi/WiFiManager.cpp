@@ -14,6 +14,7 @@ const char* const TAG = "WiFiManager";
 #include "wifi/WiFiScanManager.h"
 
 #include <WiFi.h>
+#include "util/ArduinoCompat.h"
 
 #include <esp_wifi.h>
 #include <esp_wifi_types.h>
@@ -396,7 +397,9 @@ bool WiFiManager::Init()
     hostname = OPENSHOCK_FW_HOSTNAME;
   }
 
+#if ESP_ARDUINO_VERSION_MAJOR < 3
   WiFi.setAutoConnect(false);
+#endif
   WiFi.setAutoReconnect(false);
   WiFi.enableSTA(true);
   WiFi.setHostname(hostname.c_str());
@@ -411,10 +414,17 @@ bool WiFiManager::Init()
     }
   }
 
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+  // TODO: Implement DNS configuration for Arduino Core 3.x
+  // The set_esp_interface_dns function doesn't exist and WiFi.setDNS() has a different signature
+  // For now, system will use DHCP-provided DNS servers
+  OS_LOGW(TAG, "Custom DNS servers not yet supported in Arduino Core 3.x");
+#else
   if (set_esp_interface_dns(ESP_IF_WIFI_STA, IPAddress(1, 1, 1, 1), IPAddress(8, 8, 8, 8), IPAddress(9, 9, 9, 9)) != ESP_OK) {
     OS_LOGE(TAG, "Failed to set DNS servers");
     return false;
   }
+#endif
 
   if (TaskUtils::TaskCreateUniversal(_wifimanagerUpdateTask, TAG, 2048, nullptr, 5, nullptr, 1) != pdPASS) {  // Profiled: 1.716KB stack usage
     OS_LOGE(TAG, "Failed to create WiFiManager update task");
@@ -592,11 +602,17 @@ bool WiFiManager::GetIPv6Address(char* ipAddress)
     return false;
   }
 
+#if ESP_ARDUINO_VERSION_MAJOR >= 3
+  // TODO: IPv6 support in Arduino Core 3.x - localIPv6() method doesn't exist
+  // Need to use esp_netif APIs directly
+  (void)ipAddress;
+  return false;
+#else
   IPv6Address ip       = WiFi.localIPv6();
   const uint8_t* ipPtr = ip;  // Using the implicit conversion operator of IPv6Address
   snprintf(ipAddress, IPV6ADDR_FMT_LEN + 1, IPV6ADDR_FMT, IPV6ADDR_ARG(ipPtr));
-
   return true;
+#endif
 }
 
 std::vector<WiFiNetwork> WiFiManager::GetDiscoveredWiFiNetworks()

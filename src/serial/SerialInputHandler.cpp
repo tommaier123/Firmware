@@ -18,6 +18,7 @@ const char* const TAG = "SerialInputHandler";
 #include "serialization/JsonAPI.h"
 #include "serialization/JsonSerial.h"
 #include "util/Base64Utils.h"
+#include "util/ArduinoCompat.h"
 #include "util/StringUtils.h"
 #include "util/TaskUtils.h"
 #include "wifi/WiFiManager.h"

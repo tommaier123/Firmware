@@ -11,6 +11,9 @@ const char* const TAG = "VisualStateManager";
 #include "PinPatternManager.h"
 #include "RGBPatternManager.h"
 
+#include <esp_wifi.h>
+#include <esp_event.h>
+
 #include <memory>
 
 #ifndef OPENSHOCK_LED_GPIO

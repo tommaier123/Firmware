@@ -176,7 +176,13 @@
 // Docs: https://www.espressif.com/sites/default/files/documentation/esp32-c6_datasheet_en.pdf
 #ifdef OPENSHOCK_FW_CHIP_ESP32C6
 #define OPENSHOCK_FW_CHIP_DEFINED
-#error "ESP32-C6 is not supported yet."
+// GPIO17, GPIO16 is used for UART0 RXD/TXD.
+// GPIO12, GPIO13 is used for USB serial, flashing, and debugging.
+// GPIO24-30 is used for SPI flash connection. (DO NOT TOUCH)
+// GPIO4, GPIO5, GPIO8, GPIO9, GPIO15 is strapping pins.
+#define CHIP_UNSAFE_GPIO(pin)                                                                                                                                                                                                               \
+  ((pin) == GPIO_NUM_17 || (pin) == GPIO_NUM_16 || (pin) == GPIO_NUM_12 || (pin) == GPIO_NUM_13 || (pin) == GPIO_NUM_24 || (pin) == GPIO_NUM_25 || (pin) == GPIO_NUM_26 || (pin) == GPIO_NUM_27 || (pin) == GPIO_NUM_28 || (pin) == GPIO_NUM_29 \
+   || (pin) == GPIO_NUM_30 || (pin) == GPIO_NUM_4 || (pin) == GPIO_NUM_5 || (pin) == GPIO_NUM_8 || (pin) == GPIO_NUM_9 || (pin) == GPIO_NUM_15)
 #endif
 
 #ifndef OPENSHOCK_FW_CHIP_DEFINED
@@ -206,6 +212,9 @@
 #endif
 #ifdef OPENSHOCK_FW_BOARD_DFROBOTFIREBEETLE2ESP32E
 #define OPENSHOCK_BYPASSED_GPIO(pin) ((pin) == 2 || (pin) == 5)
+#endif
+#ifdef OPENSHOCK_FW_BOARD_SEEEDXIAOESP32C6
+#define OPENSHOCK_BYPASSED_GPIO(pin) ((pin) == 15)  // Built-in LED (strapping pin)
 #endif
 #ifdef OPENSHOCK_FW_BOARD_NODEMCU32S
 #define OPENSHOCK_BYPASSED_GPIO(pin) ((pin) == 2)

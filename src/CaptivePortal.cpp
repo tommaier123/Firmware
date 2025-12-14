@@ -155,9 +155,8 @@ bool CaptivePortal::Init()
 void CaptivePortal::SetAlwaysEnabled(bool alwaysEnabled)
 {
   s_alwaysEnabled = alwaysEnabled;
-  Config::SetCaptivePortalConfig({
-    .alwaysEnabled = alwaysEnabled,
-  });
+  Config::CaptivePortalConfig config(alwaysEnabled);
+  Config::SetCaptivePortalConfig(config);
 }
 bool CaptivePortal::IsAlwaysEnabled()
 {

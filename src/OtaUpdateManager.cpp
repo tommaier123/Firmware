@@ -2,6 +2,7 @@
 
 const char* const TAG = "OtaUpdateManager";
 
+#include "util/ArduinoCompat.h"
 #include "CaptivePortal.h"
 #include "Common.h"
 #include "config/Config.h"

@@ -2,6 +2,7 @@
 
 const char* const TAG = "HTTPRequestManager";
 
+#include "util/ArduinoCompat.h"
 #include "Common.h"
 #include "Core.h"
 #include "Logging.h"

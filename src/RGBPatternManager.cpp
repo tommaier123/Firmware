@@ -16,11 +16,13 @@ using namespace OpenShock;
 // TODO: Support multiple LEDs ?
 // TODO: Support other LED types ?
 
+// WS2812B timing requires 100ns tick resolution
+const float kWS2812BTickrateNs = 100;
+
 RGBPatternManager::RGBPatternManager(gpio_num_t gpioPin)
   : m_gpioPin(GPIO_NUM_NC)
   , m_brightness(255)
   , m_pattern()
-  , m_rmtHandle(nullptr)
   , m_taskHandle(nullptr)
   , m_taskMutex()
 {
@@ -34,14 +36,13 @@ RGBPatternManager::RGBPatternManager(gpio_num_t gpioPin)
     return;
   }
 
-  m_rmtHandle = rmtInit(gpioPin, RMT_TX_MODE, RMT_MEM_64);
-  if (m_rmtHandle == NULL) {
+  // Initialize RMT with frequency derived from tick rate (100ns tick = 10MHz)
+  if (!rmtInit(gpioPin, RMT_TX_MODE, RMT_MEM_NUM_BLOCKS_1, static_cast<uint32_t>(1000000000.0f / kWS2812BTickrateNs))) {
     OS_LOGE(TAG, "Failed to initialize RMT for pin %hhi", gpioPin);
     return;
   }
 
-  float realTick = rmtSetTick(m_rmtHandle, 100.F);
-  OS_LOGD(TAG, "RMT tick is %f ns for pin %hhi", realTick, gpioPin);
+  OS_LOGD(TAG, "RMT initialized for pin %hhi", gpioPin);
 
   SetBrightness(20);
 
@@ -52,7 +53,9 @@ RGBPatternManager::~RGBPatternManager()
 {
   ClearPattern();
 
-  rmtDeinit(m_rmtHandle);
+  if (m_gpioPin != GPIO_NUM_NC) {
+    rmtDeinit(m_gpioPin);
+  }
 }
 
 void RGBPatternManager::SetPattern(const RGBState* pattern, std::size_t patternLength)
@@ -106,7 +109,7 @@ void RGBPatternManager::RunPattern(void* arg)
 {
   RGBPatternManager* thisPtr = reinterpret_cast<RGBPatternManager*>(arg);
 
-  rmt_obj_t* rmtHandle           = thisPtr->m_rmtHandle;
+  gpio_num_t gpioPin             = thisPtr->m_gpioPin;
   uint8_t brightness             = thisPtr->m_brightness;
   std::vector<RGBState>& pattern = thisPtr->m_pattern;
 
@@ -143,7 +146,7 @@ void RGBPatternManager::RunPattern(void* arg)
       }
 
       // Send the data
-      rmtWriteBlocking(rmtHandle, led_data.data(), led_data.size());
+      rmtWrite(gpioPin, led_data.data(), led_data.size(), RMT_WAIT_FOR_EVER);
       vTaskDelay(pdMS_TO_TICKS(state.duration));
     }
   }

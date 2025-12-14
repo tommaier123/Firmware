@@ -22,7 +22,7 @@ boardconf: BoardConf = from_pio_env(env)
 
 # In case we need to blacklist certain flash sizes from OTA support.
 blacklisted_OTA_sizes = [
-    # '4MB'
+    '4MB'  # ESP32-C6: Firmware too large for dual OTA partitions
     ]
 
 def use_openshock_params():
