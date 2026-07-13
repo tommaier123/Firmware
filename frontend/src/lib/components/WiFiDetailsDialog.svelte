@@ -1,6 +1,6 @@
 <script lang="ts">
   import { WifiAuthMode } from '$lib/_fbs/open-shock/serialization/types/wifi-auth-mode';
-  import { buttonVariants } from '$lib/components/ui/button';
+  import { buttonVariants } from '@openshock/svelte-core/components/ui/button';
   import type { WiFiNetworkGroup } from '$lib/types';
   import {
     Dialog,
@@ -8,7 +8,7 @@
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-  } from '$lib/components/ui/dialog';
+  } from '@openshock/svelte-core/components/ui/dialog';
 
   import { Settings } from '@lucide/svelte';
 
@@ -73,7 +73,7 @@
       <h3 class="h3">Access Points</h3>
       <!-- Scrollable list of APs -->
       <div class="flex max-h-64 flex-col space-y-2 overflow-y-auto p-2">
-        {#each group.networks as network}
+        {#each group.networks as network (network.bssid)}
           <div class="card flex items-center justify-between p-2">
             <span class="font-bold">{network.bssid}</span>
             <span class="text-gray-700 dark:text-gray-300">{network.rssi} dBm</span>

@@ -1,5 +1,9 @@
 test-results
+playwright-report
 node_modules
+
+# Turborepo
+.turbo
 
 # Output
 .output
@@ -8,10 +12,15 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
+/dist
 
 # OS
 .DS_Store
 Thumbs.db
+
+# IDE
+.idea
+.claude
 
 # Env
 .env
@@ -22,3 +31,8 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Package managers
+pnpm-lock.yaml
+package-lock.json
+yarn.lock

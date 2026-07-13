@@ -3,6 +3,7 @@ node_modules
 /build
 /.svelte-kit
 /package
+/.vscode
 .env
 .env.*
 !.env.example
@@ -16,3 +17,6 @@ yarn.lock
 /components.json
 /src/lib/_fbs
 /src/lib/components/ui
+
+# Workspace packages (e.g. svelte-core submodule) own their own formatting
+/packages
