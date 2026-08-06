@@ -37,8 +37,6 @@ on:
       - develop
     types: [opened, reopened, synchronize]
   workflow_dispatch: # Manually invoked, e.g. to force a develop build.
-  schedule:
-    - cron: '0 3 * * *' # Nightly develop build; the gate job skips it if idle.
 
 name: ci-build
 
